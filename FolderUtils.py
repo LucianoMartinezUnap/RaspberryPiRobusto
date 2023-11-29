@@ -36,6 +36,14 @@ def FaceDictionaryReader():
 	with open('./faces_dict.txt') as File:
 		Data = File.read()
 	return ast.literal_eval(Data)
-
-
-
+def AddNewFace(Name, FilePath, Action):
+	with open (FilePath, 'r') as F:
+		Data = json.load(F)
+	if Name in Data:
+		print(f"{Name} already exists in the file.")
+		return
+	else:
+		Data[Name] = {"start_time" : None, "code" : Action}
+	with open(FilePath, 'w') as F:
+		json.dump(Data, F, indent = 4)
+	print(f"{Name} has been added to the file.")

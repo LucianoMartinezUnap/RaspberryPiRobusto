@@ -5,11 +5,14 @@ from mfrc522 import SimpleMFRC522
 from NFC import NfcReader as Nfc
 from CAM import CamInterface as Cam
 from Connect2DB import Connection2DB as C2B
+from usermanager import UserManagement as User
 import time
 Path = 'dataset'
 Reader = Nfc()
 while True:
 	try:
+		Reader.ReadCard()
+		"""
 		#Paso 1
 		Reader.ReadCard()
 		#Cam.TakeManualPhoto('dataset/', str(Reader.GetUid()))
@@ -18,10 +21,10 @@ while True:
 		
 		print("NFC Checked")
 		time.sleep(1)
-		
+		#Cam.TrainingModels()
 		#Paso 2
 		if C2B.GetProviderConfirmation(Reader.GetUid(), '190.114.253.43', '/MVC/Controller/PHP/endpoint.php') == True:
-			Flag = Cam.FacialRecog()
+			Flag = Cam.FacialRecog(Reader.GetUid())
 			C2B.Post2DB('190.114.253.43', 80, '/MVC/Controller/PHP/endpoint.php', Key='rf', Value = Flag)
 		
 		else:# Si el código de estado no es 200
@@ -48,11 +51,7 @@ while True:
 		
 		
 		"""
-		
-		
-		
-		"""
-
+		User.LoginUser(Reader)
 	except Exception as err:
 		print(f"Unexpected {err=}, {type(err)=}")
 		raise
