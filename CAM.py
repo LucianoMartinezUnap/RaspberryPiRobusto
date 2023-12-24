@@ -52,7 +52,18 @@ class CamInterface:
 		Cam=cv2.VideoCapture(0)
 		while True:			
 			Check, Frame = Cam.read()
-			cv2.imshow("Capturing", Frame)
+			Copy = Frame.copy()
+			text = "Listo para tomar foto oprima 's' para guardar y\\npara finalizar el proceso oprima 'q'."
+			textSize, _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
+			lineHeight = textSize[1] + 5
+			# Dividir el texto en líneas y mostrar cada una
+			y0, dy = 30, 4 # Puedes cambiar estos valores
+			for i, line in enumerate(text.split("\\n")):
+				y = y0 + i * lineHeight
+				cv2.putText(Copy, line, (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2, cv2.LINE_AA)
+			# Mostrar la copia con texto
+			cv2.imshow("Capturing", Copy)
+
 			Key = cv2.waitKey(1)
 			if Key == ord('s'):	
 				if not Flag:
@@ -62,6 +73,16 @@ class CamInterface:
 					cv2.imwrite(filename=Path + '/' + Name + '/imagen_{}.jpg'.format(Count), img=Frame)
 				cv2.waitKey(1650)
 				cv2.destroyAllWindows()
+				empty_image = np.zeros(Frame.shape, dtype=np.uint8)
+				font = cv2.FONT_HERSHEY_SIMPLEX # Elegimos el tipo de fuente
+				color = (0, 255, 0) # Elegimos el color verde
+				thickness = 2 # Elegimos el grosor de la línea
+				text = f"Foto {Count}" # Creamos el texto con el número de la foto
+				org = (Frame.shape[1] - 200, 50) # Elegimos la posición del texto en la esquina superior derecha
+				# Usamos el método cv2.putText() para dibujar el texto en la imagen vacía
+				cv2.putText(empty_image, text, org, font, 1, color, thickness, cv2.LINE_AA)
+				# Mostramos la imagen vacía con el texto en la misma ventana que la imagen capturada
+				cv2.imshow("Capturing", empty_image)
 				Count += 1
 			elif Key == ord('q'):
 				print("Turning off camera.")
@@ -86,9 +107,9 @@ class CamInterface:
 		time.sleep(2.0)
 
 		Fps = FPS().start()
-		
-		face_code = FaceDictionaryReader()
+		print(Data['names'])
 		timestamp = datetime.datetime.now()
+		start_time = None
 		while True:
 			Frame = VS.read()
 			Frame = imutils.adjust_brightness_contrast(Frame, contrast = 65) #70 caso extremo de contraste
@@ -128,26 +149,21 @@ class CamInterface:
 				cv2.putText(Frame, Name, (Left, Y), cv2.FONT_HERSHEY_SIMPLEX,
 					.8, (0, 255, 255), 2)
 					
-				if Name in face_code and Name == str(CardId):
+				if Name in Data['names'] and Name == str(CardId):
 					FaceDetected = True
 					#timestamp = None
 					# get the start time and the code for the face
-					start_time = face_code[Name]["start_time"]
-					code = face_code[Name]["code"]
-
 					# if the start time is None, set it to the current time
 					if start_time is None:
 						start_time = datetime.datetime.now()
-						face_code[Name]["start_time"] = start_time
 					# calculate the time difference between the current time and the start time
 					time_diff = (datetime.datetime.now() - start_time).total_seconds() ###Vulnerabilidad, una persona puede estar por un segundo y regresar tiempo despues y el sistema lo sigue contemplando, no hay reinicio de este contador
 					# if the time difference is greater than or equal to the wait time, run the code
 					if time_diff >= wait_time:
-						# use the exec function to execute the code as a string
-						exec(code)
-
+						print(f"bienvenido {Name}")
+						#aqui se puede agregar codigo personalizado cuando se confirma el reconocimiento facial
 						# reset the start time to None
-						face_code[Name]["start_time"] = None
+						start_time = None
 						Fps.stop()
 						print("[INFO] elasped time: {:.2f}".format(Fps.elapsed()))
 						print("[INFO] approx. FPS: {:.2f}".format(Fps.fps()))
@@ -156,8 +172,7 @@ class CamInterface:
 
 						return True
 			if not FaceDetected:
-				for Name in face_code:
-					face_code[Name]["start_time"] = None
+				start_time = None
 				timedelta = (datetime.datetime.now() - timestamp).total_seconds()
 				if timedelta >= final_time:
 					Fps.stop()

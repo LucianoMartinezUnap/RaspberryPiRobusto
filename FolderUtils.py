@@ -6,6 +6,7 @@ import imutils
 import os
 import time
 import ast
+import json
 def MakeDatasetFolder(Path, Name):
 	if not os.path.exists(Path + '/' + Name):
 		Folder = os.path.join(Path, Name)
@@ -31,7 +32,7 @@ def DeltaTempo(TimeNumber):
 		time.sleep(1)
 		TimeNumber -= 1
 	return True
-
+"""
 def FaceDictionaryReader():
 	with open('./faces_dict.txt') as File:
 		Data = File.read()
@@ -47,3 +48,26 @@ def AddNewFace(Name, FilePath, Action):
 	with open(FilePath, 'w') as F:
 		json.dump(Data, F, indent = 4)
 	print(f"{Name} has been added to the file.")
+
+
+def AddNewFace(Name, FilePath, Code):
+	# Open the file in read-binary mode and load the data as a dictionary
+	with open(FilePath, 'rb') as f:
+		data = pickle.load(f)
+		print(data)
+
+	# Check if the name already exists in the data
+	if Name in data:
+		# If yes, print a message and return
+		print(f"{Name} already exists in the file.")
+		return
+	else:
+		# If not, create a new entry for the name with the start_time as None and the code as the argument
+		data[Name] = {"start_time": None, "code": Code}
+	# Open the file in write-binary mode and dump the updated data as pickle
+	with open(FilePath, "wb") as f:
+		pickle.dump(data, f)
+	# Print a message to confirm the addition
+	print(f"{Name} has been added to the file.")
+"""
+
